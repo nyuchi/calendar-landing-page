@@ -1,39 +1,54 @@
-# Calendar Landing Page
+# Meeting load
 
-> A placeholder repository. No application code has been committed yet.
+A contribution graph for your calendar. Every day of the year as a square,
+shaded by how many hours you were actually in meetings.
 
-[![lint](https://img.shields.io/github/actions/workflow/status/nyuchi/calendar-landing-page/lint.yml?branch=main&label=lint&style=flat-square)](https://github.com/nyuchi/calendar-landing-page/actions/workflows/lint.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+Lives in the Google Calendar sidebar. The card shows your headline numbers; one
+click opens the full graph as an overlay without leaving Calendar.
 
-**Status:** empty scaffold | **Live:** none | **Language:** none
+**Product page:** planned for `tools.nyuchi.com/calendar-overlay` (not yet live)
 
----
+## What's in this repo
 
-## What it is
+| Path                                                                 | What it is                                                                                 |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`meeting-load/`](meeting-load)                                      | The add-on itself — Apps Script source, privacy policy, publishing checklist               |
+| [`meeting-load/src/`](meeting-load/src)                              | `Code.gs`, `Index.html`, `appsscript.json` — the three files the Apps Script project needs |
+| [`meeting-load/docs/PUBLISHING.md`](meeting-load/docs/PUBLISHING.md) | Getting a Google Workspace Marketplace listing                                             |
 
-The repository name and its GitHub description state the intent — a custom
-overlay for Google Calendar, rendered in the style of GitHub's contribution
-graph. None of that has been written yet.
+Start at [`meeting-load/README.md`](meeting-load/README.md) — it covers what
+counts as a meeting, how to install, and how to run your own copy.
 
-What is actually in this repository, in full:
+## Where the landing page lives
 
-| Path                                    | What it is                           |
-| --------------------------------------- | ------------------------------------ |
-| `.github/workflows/lint.yml`            | The org-wide lint gate               |
-| `.prettierrc`, `.prettierignore`        | Prettier config, copied from the org |
-| `.markdownlint.jsonc`, `.yamllint.yaml` | Lint configs, copied from the org    |
-| `.editorconfig`                         | Editor config                        |
-| `LICENSE`                               | MIT                                  |
-| `README.md`                             | This file                            |
+Despite this repository's name, the public landing page is **not** here. The
+plan is for it to be served from `tools.nyuchi.com`, a single Cloudflare Worker
+(`nyuchi-tools`) defined in
+[`nyuchi/workspace-tools`](https://github.com/nyuchi/workspace-tools):
 
-There is no source tree, no `package.json`, no build, and no deployment. The
-history is one initial commit plus two commits that added the lint gate.
+| URL                                         | Status                                       |
+| ------------------------------------------- | -------------------------------------------- |
+| `tools.nyuchi.com/calendar-overlay`         | Not yet published; page not yet in that repo |
+| `tools.nyuchi.com/calendar-overlay/privacy` | Not yet published; page not yet in that repo |
+| `tools.nyuchi.com/legal/terms`              | Not yet published; page not yet in that repo |
 
-This README is deliberately thin because anything longer would be describing
-software that does not exist. It should be replaced the moment there is a
-first commit of real code.
+It lives there because `tools.nyuchi.com` is a Workers Custom Domain covering the
+whole hostname, so a second Worker cannot claim a sub-path of it. Those routes
+must be public while the rest of that site stays behind a login gate, because
+the Marketplace listing's homepage, privacy and terms URLs are fetched by
+Google's reviewers with no cookies. A policy behind a sign-in fails review.
+
+## Privacy
+
+Your calendar data never leaves Google. The script runs in your own Apps Script
+account, reads your calendars, and renders the result. There is no server, no
+analytics, and no third party. The only thing stored is your own settings —
+which calendars to read and your year-start date — held in Google's per-user
+property store.
+
+Full detail in [`meeting-load/PRIVACY.md`](meeting-load/PRIVACY.md), intended for publication at
+`tools.nyuchi.com/calendar-overlay/privacy`.
 
 ## Licence
 
-Licensed under the [MIT License](LICENSE).
-© Nyuchi Africa (PVT) Ltd.
+MIT. See [LICENSE](LICENSE).
