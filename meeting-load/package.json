@@ -7,9 +7,15 @@
   "scripts": {
     "push": "clasp push",
     "pull": "clasp pull",
-    "open": "clasp open"
+    "open": "clasp open-script"
   },
   "devDependencies": {
-    "@google/clasp": "^2.4.2"
+    "@google/clasp": "^3.4.1"
+  },
+  "overrides": {
+    "zod": "^4.6.6",
+    "minimatch": "^11.0.1",
+    "gaxios": "^7.3.1",
+    "glob": "^11.1.0"
   }
 }
