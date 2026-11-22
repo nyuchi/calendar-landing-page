@@ -1,0 +1,21 @@
+{
+  "name": "meeting-load",
+  "version": "1.0.0",
+  "description": "A contribution graph for your Google Calendar",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "open": "clasp open-script"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.4.1"
+  },
+  "overrides": {
+    "zod": "^4.6.6",
+    "minimatch": "^11.0.1",
+    "gaxios": "^7.3.1",
+    "glob": "^11.1.0"
+  }
+}
