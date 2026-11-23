@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #1f1f1f;
+    --ink-soft: #5f6368;
+    --ink-faint: #80868b;
+    --rule: #e8eaed;
+    --empty: #f1f3f4;
+    --l1: #b5d4f4;
+    --l2: #85b7eb;
+    --l3: #378add;
+    --l4: #185fa5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1f1f1f;
+      --ink: #e8eaed;
+      --ink-soft: #bdc1c6;
+      --ink-faint: #9aa0a6;
+      --rule: #3c4043;
+      --empty: #2d2e30;
+      --l1: #0c447c;
+      --l2: #185fa5;
+      --l3: #378add;
+      --l4: #85b7eb;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+  }
+  h1 { font-size: 20px; font-weight: 500; margin: 0 0 24px; }
+  h2 { font-size: 16px; font-weight: 500; margin: 0 0 2px; }
+  .range { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; }
+  .year { margin-bottom: 32px; }
+  .year + .year { border-top: 1px solid var(--rule); padding-top: 28px; }
+  .stats { display: flex; gap: 28px; margin-bottom: 18px; flex-wrap: wrap; }
+  .stat-label { font-size: 12px; color: var(--ink-soft); }
+  .stat-value { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+  .scroller { overflow-x: auto; padding-bottom: 6px; }
+  .chart { display: flex; gap: 5px; }
+  .days { display: flex; flex-direction: column; gap: 3px; padding-top: 16px; }
+  .day-label { height: 11px; line-height: 11px; font-size: 10px; color: var(--ink-faint); width: 26px; }
+  .weeks { display: flex; gap: 3px; }
+  .week { display: flex; flex-direction: column; gap: 3px; }
+  .months { display: flex; gap: 3px; height: 16px; }
+  .month { width: 11px; font-size: 10px; color: var(--ink-faint); white-space: nowrap; }
+  .cell { width: 11px; height: 11px; border-radius: 2px; background: var(--empty); }
+  .cell.pad { background: transparent; }
+  .cell.l1 { background: var(--l1); }
+  .cell.l2 { background: var(--l2); }
+  .cell.l3 { background: var(--l3); }
+  .cell.l4 { background: var(--l4); }
+  .legend { display: flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 12px; color: var(--ink-soft); }
+  .note { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--ink-faint); line-height: 1.6; }
+</style>
+</head>
+<body>
+<h1>Meeting load</h1>
+<div id="root"></div>
+<div class="note">
+  Counts meetings you host or were invited to and did not decline. Overlapping
+  bookings are merged, so a double-booked hour counts once. Out-of-office,
+  working-location and all-day entries are excluded. Data refreshes hourly.
+</div>
+
+<script>
+  var DATA = JSON.parse(<?!= JSON.stringify(data) ?>);
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function level(h) {
+    if (h === 0) return '';
+    if (h < 2) return ' l1';
+    if (h < 4) return ' l2';
+    if (h < 6.5) return ' l3';
+    return ' l4';
+  }
+
+  function render(year) {
+    var start = new Date(year.gridStart + 'T00:00:00');
+    var weeks = Math.ceil(year.cells.length / 7);
+    var months = '', cols = '', last = -1;
+
+    for (var w = 0; w < weeks; w++) {
+      var col = '<div class="week">';
+      for (var d = 0; d < 7; d++) {
+        var i = w * 7 + d;
+        var v = i < year.cells.length ? year.cells[i] : null;
+        if (v === null) {
+          col += '<div class="cell pad"></div>';
+          continue;
+        }
+        var date = new Date(start.getTime() + i * 86400000);
+        var label = date.toDateString() + ' — ' +
+          (v === 0 ? 'nothing booked' : v.toFixed(1) + ' hours booked');
+        col += '<div class="cell' + level(v) + '" title="' + label + '"></div>';
+      }
+      cols += col + '</div>';
+
+      var m = new Date(start.getTime() + w * 7 * 86400000).getMonth();
+      months += '<div class="month">' + (m !== last ? MONTHS[m] : '') + '</div>';
+      last = m;
+    }
+
+    return '' +
+      '<div class="year">' +
+        '<h2>' + year.label + '</h2>' +
+        '<p class="range">' + year.range + '</p>' +
+        '<div class="stats">' +
+          stat('Hours booked', year.hours + ' h') +
+          stat('Days with meetings', year.days) +
+          stat('Median busy day', year.median + ' h') +
+          stat('Busiest day', year.max + ' h') +
+        '</div>' +
+        '<div class="scroller"><div class="chart">' +
+          '<div class="days">' +
+            '<div class="day-label">Mon</div><div class="day-label"></div>' +
+            '<div class="day-label">Wed</div><div class="day-label"></div>' +
+            '<div class="day-label">Fri</div><div class="day-label"></div>' +
+            '<div class="day-label"></div>' +
+          '</div>' +
+          '<div><div class="months">' + months + '</div>' +
+          '<div class="weeks">' + cols + '</div></div>' +
+        '</div></div>' +
+        '<div class="legend">Less' +
+          '<span class="cell"></span><span class="cell l1"></span>' +
+          '<span class="cell l2"></span><span class="cell l3"></span>' +
+          '<span class="cell l4"></span>More' +
+          '<span style="margin-left:12px">0 · under 2h · 2–4h · 4–6.5h · 6.5h+</span>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function stat(label, value) {
+    return '<div><div class="stat-label">' + label + '</div>' +
+           '<div class="stat-value">' + value + '</div></div>';
+  }
+
+  document.getElementById('root').innerHTML =
+    render(DATA.current) + render(DATA.previous);
+</script>
+</body>
+</html>
